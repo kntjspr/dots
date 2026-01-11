@@ -1,0 +1,58 @@
+# Espanso Configuration for Freelancer Workflow
+
+matches:
+  # --- Freelance Replies ---
+  
+  # Acceptance
+  - trigger: ":accept"
+    replace: |
+      Hi {{name}},
+      
+      Thanks for reaching out! I'd be happy to take this on. 
+      I've reviewed the requirements and it fits my schedule.
+      
+      I'll send over a formal proposal/contract via my portal shortly.
+      
+      Best,
+      XO
+
+  # Rejection (Polite)
+  - trigger: ":reject"
+    replace: |
+      Hi {{name}},
+      
+      Thank you for thinking of me for this project.
+      Unfortunately, I'm fully booked for the next few weeks and won't be able to give this the attention it deserves.
+      
+      I can recommend a few other developers if you'd like.
+      
+      Best,
+      XO
+
+  # Contract Follow-up
+  - trigger: ":contract"
+    replace: |
+      Hi {{name}},
+      
+      Just following up to see if you've had a chance to review the contract I sent over on {{date}}?
+      Let me know if you have any questions or need any adjustments.
+      
+      Link: {{link}}
+      
+      Best,
+      XO
+
+  # --- Dev Utilities ---
+  
+  # Current Date
+  - trigger: ":today"
+    replace: "{{mydate}}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y-%m-%d"
+
+  # Git Commit Template
+  - trigger: ":gcmt"
+    replace: "feat: {{scope}} - {{desc}}"

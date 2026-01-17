@@ -15,6 +15,7 @@ configuration {
     display-run:                " ";
     display-filebrowser:        " ";
     display-window:             " ";
+    display-goto:               " ";
 	drun-display-format:        "{name}";
 	window-format:              "{w} · {c} · {t}";
 }
@@ -307,4 +308,3 @@ error-message {
     background-color:            @background-colour;
     text-color:                  @foreground-colour;
 }
-

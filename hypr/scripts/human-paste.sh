@@ -1,10 +1,43 @@
 #!/bin/bash
-# Human-like paste script for Wayland (Hyprland)
-# Pastes clipboard content character by character with random delays
+# human-like paste script for wayland (hyprland)
+# pastes clipboard content character by character with random delays
+# press the same hotkey again to stop all running instances
 
-MAX_DELAY=0.5  # Maximum delay in seconds
+PIDFILE="/tmp/human-paste.pid"
+MAX_DELAY=0.5
 
-# Get clipboard content
+cleanup() {
+    # remove our pid from the file
+    if [[ -f "$PIDFILE" ]]; then
+        grep -v "^$$\$" "$PIDFILE" > "${PIDFILE}.tmp" 2>/dev/null
+        mv "${PIDFILE}.tmp" "$PIDFILE" 2>/dev/null
+        # if file is empty, remove it
+        [[ ! -s "$PIDFILE" ]] && rm -f "$PIDFILE" 2>/dev/null
+    fi
+}
+
+trap cleanup EXIT
+
+# check if any instances are running
+if [[ -f "$PIDFILE" ]]; then
+    running_pids=$(cat "$PIDFILE" 2>/dev/null)
+    if [[ -n "$running_pids" ]]; then
+        # kill all running instances
+        while IFS= read -r pid; do
+            if [[ -n "$pid" ]] && kill -0 "$pid" 2>/dev/null; then
+                kill "$pid" 2>/dev/null
+            fi
+        done <<< "$running_pids"
+        rm -f "$PIDFILE" 2>/dev/null
+        notify-send "Human Paste" "Stopped" -t 1000
+        exit 0
+    fi
+fi
+
+# register our pid
+echo "$$" >> "$PIDFILE"
+
+# get clipboard content
 CLIPBOARD=$(wl-paste 2>/dev/null)
 
 if [[ -z "$CLIPBOARD" ]]; then
@@ -12,21 +45,24 @@ if [[ -z "$CLIPBOARD" ]]; then
     exit 1
 fi
 
-# Type each character with a random delay
+# type each character with a random delay
 while IFS= read -r -n1 char; do
     if [[ -n "$char" ]]; then
-        # Handle special characters for wtype
+        # handle special characters for wtype
         case "$char" in
             $'\t') wtype -k Tab ;;
             ' ') wtype -k space ;;
             *) wtype -- "$char" ;;
         esac
     elif [[ -z "$char" ]]; then
-        # Handle newline
+        # handle newline
         wtype -k Return
     fi
     
-    # Random delay between 0 and MAX_DELAY seconds (in milliseconds for better precision)
+    # random delay between 0 and MAX_DELAY seconds
     delay=$(awk -v max="$MAX_DELAY" 'BEGIN{srand(); printf "%.3f", rand()*max}')
     sleep "$delay"
 done <<< "$CLIPBOARD"
+
+# press enter after finishing
+wtype -k Return
